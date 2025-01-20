@@ -3,6 +3,7 @@ create table table1 using these fields name (3), age(2), city(5), zipcode(5), ph
 create table table2 using these fields  state_code(2), County(6),order_date("yyyy-MM-dd hh:mm:ss"),
  phone(10), order_id(uuid()), name (3) using the uuid library.*/
 -- Create two tables for the above two tables.
+use db;
 CREATE TABLE table1 (
     name VARCHAR(3),
     age CHAR(2), -- Age is now 2 characters (CHAR(2))
@@ -33,6 +34,9 @@ create table oldtable2data as select * from table2;
 select * from oldtable1data;
 select * from oldtable2data;
 
+drop table  oldtable1data;
+drop table oldtable2data;
+
 SELECT (SELECT COUNT(*) FROM table1) AS table1_count,
        (SELECT COUNT(*) FROM table2) AS table2_count
 FROM dual;
@@ -40,25 +44,46 @@ FROM dual;
 truncate table table1;
 truncate table table2;
 
+drop table table1;
+drop table table2;
+drop table table3;
+drop table table5;
+
+
 -- check condition Order_Date range should be from 2020-2024
 SELECT *
 FROM table2
-WHERE order_date >= '2020-01-01' AND order_date <= '2024-12-31'
-order by order_date desc;
+WHERE order_date >= '2020-01-01' AND order_date <= '2025-01-01'
+order by order_date asc;
 
 SELECT count(*)
 FROM table2
-WHERE order_date >= '2020-01-01' AND order_date <= '2024-12-31'
+WHERE order_date >= '2020-01-01' AND order_date <= '2025-01-01'
 order by order_date desc;
 
 /*Task4: Join the two tables on State_code and name (3)  to create a single table with 
 all the rows and also columns from both the tables. Name the table table3 */
-drop table if exists table5;
+drop table if exists table3;
 CREATE TABLE table3 AS
-SELECT  t1.*, t2.County, t2.order_date FROM table1 t1 JOIN table2 t2
+SELECT  t1.*, t2.County, t2.order_date FROM table1 t1 left JOIN table2 t2
+ON t1.state_code = t2.state_code AND t1.name = t2.name
+union
+SELECT  t1.*, t2.County, t2.order_date FROM table1 t1 right JOIN table2 t2
 ON t1.state_code = t2.state_code AND t1.name = t2.name;
 
+SELECT COUNT(*)
+FROM (SELECT  t1.*, t2.County, t2.order_date FROM table1 t1 left JOIN table2 t2
+ON t1.state_code = t2.state_code AND t1.name = t2.name
+union
+SELECT  t1.*, t2.County, t2.order_date FROM table1 t1 right JOIN table2 t2
+ON t1.state_code = t2.state_code AND t1.name = t2.name) as fulljoincount;
+
+select count(*) from table3;
+
+select * from table3;
+
 drop table table3;
+truncate table table3;
 
 SELECT 
    count(*)
@@ -72,7 +97,7 @@ HAVING COUNT(*) > 1;
 
 /*Task5: From table 3, write sql queries to do the following.
 a) Create a table table5 with records from states TX, CA, AZ, NY, FL */
-drop table if existsS table5;
+drop table if exists table5;
 CREATE TABLE table5 AS
 SELECT *
 FROM table3
@@ -81,6 +106,8 @@ WHERE state_code IN ('TX', 'CA', 'AZ', 'NY', 'FL');
 SELECT count(*)
 FROM table3
 WHERE state_code IN ('TX', 'CA', 'AZ', 'NY', 'FL');
+
+select count(*) from table5;
 
 -- b) To find the State with most orders using order_id
 SELECT 
@@ -134,10 +161,15 @@ LIMIT 1;
 SELECT 
     order_id,
     LENGTH(order_id) AS order_id_length,
+    SUBSTRING_INDEX(order_id, '-', 1) AS part1,
     LENGTH(SUBSTRING_INDEX(order_id, '-', 1)) AS part1_length,
+     SUBSTRING_INDEX(SUBSTRING_INDEX(order_id, '-', 2), '-', -1) AS part2,
     LENGTH(SUBSTRING_INDEX(SUBSTRING_INDEX(order_id, '-', 2), '-', -1)) AS part2_length,
+        SUBSTRING_INDEX(SUBSTRING_INDEX(order_id, '-', 3), '-', -1) AS part3,
     LENGTH(SUBSTRING_INDEX(SUBSTRING_INDEX(order_id, '-', 3), '-', -1)) AS part3_length,
+       SUBSTRING_INDEX(SUBSTRING_INDEX(order_id, '-', 4), '-', -1) AS part4,
     LENGTH(SUBSTRING_INDEX(SUBSTRING_INDEX(order_id, '-', 4), '-', -1)) AS part4_length,
+      SUBSTRING_INDEX(SUBSTRING_INDEX(order_id, '-', 5), '-', -1) AS part5,
     LENGTH(SUBSTRING_INDEX(SUBSTRING_INDEX(order_id, '-', 5), '-', -1)) AS part5_length
 FROM table3;
 
